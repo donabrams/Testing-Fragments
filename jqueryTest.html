@@ -1,0 +1,135 @@
+<html
+<head>
+<script type="text/javascript" src="http://github.com/donabrams/Testing-Fragments/raw/master/jquery.js"></script>
+<script type="text/javascript" src="http://github.com/donabrams/Testing-Fragments/raw/master/jquery-ui.js"></script>
+<script type="text/javascript" src="http://github.com/jquery/jquery-tmpl/raw/master/jquery.tmpl.min.js"></script>
+<script type="text/javascript">
+$(function() {
+    $.widget("ui.mydogisAwesome", {        
+        _create : function() {
+            this.element.html(this.widgetName);
+        }
+    });
+    $('#mine').mydogisAwesome();    
+
+	$.widget("udel.factory", {
+		options : {
+			name : "factoryDefault"
+		},
+		// If create is overridden, call _registerInstance() unless you don't want it added!
+		_create : function() {
+			this._registerInstance();            
+		},
+		_registerInstance : function() {
+			var pkg = this._getWidgetPackage();
+		    if (!pkg.instanceMap) {
+		        pkg.instanceMap = {};
+			}
+		    pkg.instanceMap[this.options.name] = this.element; 
+		},
+		destroy : function() {
+			var map = this._getInstanceMap();
+		    if (map && map[this.options.name]) {
+				map.remove(this.options.name);
+			}
+		    $.Widget.prototype.destroy.apply(this,arguments);
+		},
+		_getWidgetPackage: function() {
+		    return $[this.namespace][this.widgetName];
+		},
+		_getInstanceMap: function(){
+		    return this._getWidgetPackage().instanceMap;
+		},
+		_getInstance: function(name){
+		    return this._getInstanceMap()[name];
+		}
+	});
+    $.widget("udel.factoryTest", $.udel.factory, {        
+        options : {
+            name : "test0"
+        },
+        _create : function() {
+			console.log("in _create, before _registerInstance");
+            this._registerInstance();
+			console.log("in _create, after _registerInstance");
+            this.element.html("_create2");
+            var html = "<h3>" + this.options.name + "._create()</h3>";
+            html += "List of factoryTest names:<ul>";
+			var instanceMap = this._getInstanceMap();
+	        for (var o in instanceMap) {
+				if (instanceMap.hasOwnProperty(o)) {
+		            html += "<li>" + o + "</li>";
+				}
+	        }
+            html += "</ul>";
+			console.log(html);
+            this.element.html(html);
+        }
+    });
+    $.widget("udel.udTemplate", $.udel.factory, {
+        options: {
+            name: "",
+            url: null,
+            tmplString: "",
+            template: null
+        },
+        _create: function() {
+			console.log("udTemplate._create");
+            if (this.options.template) {
+				console.log("We already have a template!");
+                return;
+            }
+            else if (this.options.url) {
+                var that = this;
+				console.log("creating from url...");
+                $.ajax({
+                    dataType: "text",
+                    url: this.options.url,
+                    type: "GET",
+                    success: function(tmplString) {
+						console.log("got template!");
+                        that.options.template = that._build(tmplString);
+                        that._registerInstance();
+                    }
+                });
+            }
+            else if (this.options.tmplString) {
+				console.log("creating from template string");
+                this.options.template = this._build(this.options.tmplString);
+                this._registerInstance();
+            }
+        },
+        _build: function(templateString) {
+            return $.template(this.options.name, templateString);
+        },
+        apply: function(data, target) {
+            if (this.options.template){
+                target.html("");
+                $.tmpl(this.options.template, data).appendTo(target);
+            }
+        }
+    });
+    $('#testA').factoryTest({name: "testA"});  
+    $('#testB').factoryTest({name: "testB"});
+
+    $('#test1').udTemplate({
+        name: "test1", 
+        tmplString: "my dog is awesome like ${what}"});
+    $('#test1').udTemplate('apply', {what:"A1"}, $('#test1'));
+
+    $('#test2').udTemplate({
+        name: "test2", 
+        url : "http://github.com/donabrams/Testing-Fragments/raw/master/jqueryTemplateFragment.html"
+	});
+    $('#test2').udTemplate('apply', {container:"Bag"}, $('#test2'));
+});
+</script>
+</head>
+<body>
+	<div id="mine"> </div>
+	<div id="testA"> </div>
+	<div id="testB"> </div>
+	<div id="test1"> </div>
+	<div id="test2"> </div>
+</body>
+</html>
