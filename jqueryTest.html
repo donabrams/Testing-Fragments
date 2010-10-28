@@ -4,7 +4,30 @@
 <script type="text/javascript" src="jquery-ui.js"></script>
 <script type="text/javascript" src="http://github.com/jquery/jquery-tmpl/raw/master/jquery.tmpl.min.js"></script>
 <script type="text/javascript">
-$(function() {
+console.log("hi!");
+$(function() {    
+	$.condWait = function(max_attempts, delay, condFunc, condScope, func, scope /*, arguments */) {
+        var workerUnroller;
+        var worker = function (attempts, max_attempts, delay, flagFunc, flagScope, func, scope, args) {
+            if (attempts >= max_attempts) {
+                return false;
+            }
+            if (!flagFunc.apply(flagScope)) {
+                //increment attempts
+                var args2 = [attempts + 1].concat(Array.prototype.slice.call( arguments, 1));
+                setTimeout(workerUnroller, delay, args2);
+            }
+            else {
+                //apply just the arguments!
+                func.apply(scope, args);
+            }
+        };
+        workerUnroller = function(array) {
+            worker.apply(this, array);
+        };
+        worker(0, max_attempts, delay, condFunc, condScope, func, scope, 
+                      Array.prototype.slice.call( arguments, 6 ));
+    };
     $.widget("ui.mydogisAwesome", {        
         _create : function() {
             this.element.html(this.widgetName);
@@ -21,6 +44,7 @@ $(function() {
 			this._registerInstance();            
 		},
 		_registerInstance : function() {
+			window.console.log("registering instance");
 			var pkg = this._getWidgetPackage();
 		    if (!pkg.instanceMap) {
 		        pkg.instanceMap = {};
@@ -74,6 +98,7 @@ $(function() {
             template: null
         },
         _create: function() {
+			this.loading = true;
 			console.log("udTemplate._create");
             if (this.options.template) {
 				console.log("We already have a template!");
@@ -90,46 +115,136 @@ $(function() {
 						console.log("got template!");
                         that.options.template = that._build(tmplString);
                         that._registerInstance();
-                    }
+						console.log("template loaded");
+						that.loading = false;
+                    },
+					error: function() {
+						template = "Error loading template.";
+						that.loading = false;
+					}
                 });
             }
             else if (this.options.tmplString) {
-				console.log("creating from template string");
                 this.options.template = this._build(this.options.tmplString);
                 this._registerInstance();
+				console.log("template loaded");
+				this.loading = false;
             }
         },
         _build: function(templateString) {
+			console.log("creating from template string:");
+			console.log(templateString);
             return $.template(this.options.name, templateString);
         },
-        apply: function(data, target) {
-            if (this.options.template){
-                target.html("");
-                $.tmpl(this.options.template, data).appendTo(target);
-            }
-        }
+        applyTemplate: function(data, target) {
+			if (target == null)
+				target = this.element;
+			$this = $(this);
+			//wait 4 seconds for the template if its not loaded yet
+			$.condWait(20, 200,
+				function() { 
+					return !this.loading;
+				}, 
+				this, 
+				this._applyTemplate,
+				this,
+				data,target);
+		},
+        _applyTemplate: function(data, target) {
+			if (target == null)
+				target = this.element;
+		    if (this.options.template){
+		        target.html("");
+		        $.tmpl(this.options.template, data).appendTo(target);
+		    }
+		}
     });
+	$.validator.setDefaults({
+		//TODO: UD wide defaults such as emplid, date, class format, etc...
+		debug:true
+	});
+	//REMOTE VALIDATION?!?!?! - emplid, chartfields, etc...
+	//http://docs.jquery.com/Plugins/Validation/Methods/remote
+    $.widget("udel.udValidator", $.udel.factory, {		
+		//works by class definitions sucha s required, defaultInvalid, email, url, zipcode, phone, password, etc...
+		options : {
+			name: "defaultValidator",
+			rules: {},
+			globalErrorSelector: {},
+			messages: {
+					//custom messages, not types.... types are in the rules
+					password2: {
+						required: " ",
+						equalTo: "Please enter the same password as above"	
+					},
+					email: {
+						required: " ",
+						email: "Please enter a valid email address, example: you@yourdomain.com",
+						remote: jQuery.validator.format("{0} is already taken, please enter a different address.")	
+					}
+			}
+		},
+		_create : {
+			//TODO: create the global error div???  Maybe this should be done on validate!
+		}
+		addValidation: function(target) {
+			target.validate({
+				//http://docs.jquery.com/Plugins/Validation/validate#toptions
+				invalidHandler: function(e, validator) {
+					var errors = validator.numberOfInvalids();
+					if (errors) {
+						var message = errors == 1
+							? 'You missed 1 field. It has been highlighted below'
+							: 'You missed ' + errors + ' fields.  They have been highlighted below';
+						$("div.error span#" + this.options.name).html(message);
+						$("div.error").show();
+					} else {
+						$("div.error").hide();
+					}
+				},
+				submitHandler: function(form) {
+					//do you ajax submit thing!!
+					$(form).ajaxSubmit();
+				},
+				messages: this.options.messages
+			});
+		},
+		isValid: function(target) {
+			target.validate({rules: this.options.rules});
+		}
+	});
     $('#testA').factoryTest({name: "testA"});  
     $('#testB').factoryTest({name: "testB"});
+    $('#testB').factoryTest({name: "testB"});
 
-    $('#test1').udTemplate({
-        name: "test1", 
+    $('#testA').udTemplate({
+        name: "testA", 
         tmplString: "my dog is awesome like ${what}"});
-    $('#test1').udTemplate('apply', {what:"A1"}, $('#test1'));
+    $('#testA').udTemplate('applyTemplate', {what:"A1"});
 
-    $('#test2').udTemplate({
-        name: "test2", 
-        url : "http://github.com/donabrams/Testing-Fragments/raw/master/jqueryTemplateFragment.html"
+    $('#testB').udTemplate({
+        name: "testB", 
+        url : "jqueryTemplateFragment.html"
 	});
-    $('#test2').udTemplate('apply', {container:"Bag"}, $('#test2'));
+    $('#testB').udTemplate('applyTemplate', {container:"Bag"});
+
+    $('.two').udTemplate({
+		    name: "two", 
+        	url : "jqueryTemplateFragment.html"})
+		.udTemplate('applyTemplate', {container:"Bag"});
+	$('#test2').udTemplate('applyTemplate', {container:"Dog"});
 });
 </script>
 </head>
 <body>
+	<div class="error"></div>
+	<div id="content"> </div>
 	<div id="mine"> </div>
 	<div id="testA"> </div>
 	<div id="testB"> </div>
-	<div id="test1"> </div>
-	<div id="test2"> </div>
+	<div id="test1" class="two"> </div>
+	<div id="test2" class="two"> </div>
+	<div id="condwait"> </div>
 </body>
 </html>
+
