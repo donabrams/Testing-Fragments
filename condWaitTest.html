@@ -1,0 +1,56 @@
+<html
+<head>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="jquery-ui.js"></script>
+<script type="text/javascript" src="http://github.com/jquery/jquery-tmpl/raw/master/jquery.tmpl.min.js"></script>
+<script type="text/x-jquery-tmpl" src="jqueryTemplateFragment.html"></script>
+<script type="text/javascript">
+(function( $ ){ 
+    $.condWait = function(max_attempts, delay, flagFunc, flagScope, func, scope /*, arguments */) {
+        var workerUnroller;
+        var worker = function (attempts, max_attempts, delay, flagFunc, flagScope, func, scope, args) {
+            if (attempts >= max_attempts) {
+                return false;
+            }
+            if (!flagFunc.apply(flagScope)) {
+                //increment attempts
+                var args2 = [attempts + 1].concat(Array.prototype.slice.call( arguments, 1));
+                setTimeout(workerUnroller, delay, args2);
+            }
+            else {
+                //apply just the arguments!
+                func.apply(scope, args);
+            }
+        };
+        workerUnroller = function(array) {
+            worker.apply(this, array);
+        };
+        worker(0, max_attempts, delay, flagFunc, flagScope, func, scope, 
+                      Array.prototype.slice.call( arguments, 6 ));
+    };
+    var something = {
+        counter: 0,
+        isCompleted: function() {
+            this.counter = this.counter + 1;
+            $('#content').html("try " + this.counter);
+            return this.counter > 6;
+        },
+        gitErDone: function(someHtml, note) { 
+            $('#content').html("Completed after " + this.counter + ":" + someHtml);
+            $('#condStatus').html(note);
+        },
+        gitErStarted: function(someHtml, note) {
+            $.condWait(20, 1000, this.isCompleted, this, this.gitErDone, this, someHtml, note);
+            //does not work yet:
+            //_cond_wait(20, 1000, this.isCompleted, this.gitErDone, someHtml, note);
+        }
+    };
+    something.gitErStarted("yay it works", "I rule");
+})( jQuery );
+</script>
+</head>
+<body>
+	<div id="content"> </div>
+	<div id="condStatus"> </div>
+</body>
+</html>
