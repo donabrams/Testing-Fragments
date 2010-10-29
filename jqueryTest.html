@@ -164,8 +164,9 @@ $(function() {
 		debug:true
 	});
 	//REMOTE VALIDATION?!?!?! - emplid, chartfields, etc...
+	//Maybe this should be another include???
 	//http://docs.jquery.com/Plugins/Validation/Methods/remote
-    $.widget("udel.udValidator", $.udel.factory, {		
+    $.widget("udel.udValidator", $.udel.factory, {
 		//works by class definitions sucha s required, defaultInvalid, email, url, zipcode, phone, password, etc...
 		options : {
 			name: "defaultValidator",
@@ -186,8 +187,10 @@ $(function() {
 		},
 		_create : {
 			//TODO: create the global error div???  Maybe this should be done on validate!
-		}
+		},
 		addValidation: function(target) {
+			if (target == null)
+				target = this.element;
 			target.validate({
 				//http://docs.jquery.com/Plugins/Validation/validate#toptions
 				invalidHandler: function(e, validator) {
@@ -210,9 +213,70 @@ $(function() {
 			});
 		},
 		isValid: function(target) {
-			target.validate({rules: this.options.rules});
+			if (target == null)
+				target = this.element;
+			return target.validate({rules: this.options.rules});
 		}
 	});
+/*
+    //TODO:
+	$.widget("udel.store", $.udel.factory, {
+		options : {
+			name: "",
+			url : "",
+			type: "GET",
+			dataStore: {},
+			form: null
+		},
+		// If create is overridden, call _registerInstance() unless you don't want it added!
+		_create : function() {
+			if (this.is('form'))
+				this.options.form = this.element;
+			this._registerInstance();
+		},
+		//fetch : function(/* function * / callback) {
+		fetch : function(/* Object or string or null (for form) * / data, /* function * / callback) {
+			if ($.isFunction(data)) {
+				//if data is not provided, just a callback (signalled by data being a function), then set callback appropriately
+				callback = data;
+				data = null;
+			}
+			if (url) {
+				if (data) {
+					$.ajax({data:data, url:this.options.url, type:this.options.type, success: callback});
+				}
+				else if (this.options.form) {
+					data = this._getDataFromForm(this.options.form);
+					$.ajax({data:data, url:this.options.url, type:this.options.type, success: callback});					
+				}
+				else {
+					$.ajax({url:this.options.url, type:this.options.type, success: callback});
+				}
+			}
+			else if (callback) {
+				callback(this.options.dataStore);
+			}
+		},
+		//multiselects will come in the form "name[]": [] rather than "name" : [] as is the ruby way...
+		_getDataFromForm(form) {
+			var o = {};
+			var a = $(form).serializeArray();
+			$.each(a, function() {
+				if (o[this.name]) {
+					if (!o[this.name].push) {
+					    o[this.name] = [o[this.name]];
+					}
+					o[this.name].push(this.value || '');
+				} else {
+					o[this.name] = this.value || '';
+				}
+			});
+			//TODO: convert name[] to name??? and update above documentation???
+			return $.toJSON(o);
+		}
+	});
+
+
     $('#testA').factoryTest({name: "testA"});  
     $('#testB').factoryTest({name: "testB"});
     $('#testB').factoryTest({name: "testB"});
@@ -233,6 +297,29 @@ $(function() {
         	url : "jqueryTemplateFragment.html"})
 		.udTemplate('applyTemplate', {container:"Bag"});
 	$('#test2').udTemplate('applyTemplate', {container:"Dog"});
+*/
+
+    function getJsonFromForm($form) {
+        var o = {};
+        var a = $form.serializeArray();
+        $.each(a, function() {
+            if (o[this.name]) {
+                if (!o[this.name].push) {
+                    o[this.name] = [o[this.name]];
+                }
+                o[this.name].push(this.value || '');
+            } else {
+                o[this.name] = this.value || '';
+            }
+        });
+        return $.toJSON(o);
+    }
+    $("#submitButton").bind('click', function() {
+        $('#output').html("jsoning!");
+        var json = getJsonFromForm($("#testform"));
+        $('#output').html(json);
+		return false;
+    });    
 });
 </script>
 </head>
@@ -245,6 +332,33 @@ $(function() {
 	<div id="test1" class="two"> </div>
 	<div id="test2" class="two"> </div>
 	<div id="condwait"> </div>
+
+
+<form id="testform" action="" method="post"> <br/> 
+First Name:<input type="text" name="Fname" maxlength="12" size="12"/> <br/> 
+Last Name:<input type="text" name="Lname" maxlength="36" size="12"/> <br/> 
+Gender:<br/> 
+Male:<input type="radio" name="gender" value="Male"/><br/> 
+Female:<input type="radio" name="gender" value="Female"/><br/> 
+Favorite Food:<br/> 
+Steak:<input type="checkbox" name="food[]" value="Steak"/><br/> 
+Pizza:<input type="checkbox" name="food[]" value="Pizza"/><br/> 
+Chicken:<input type="checkbox" name="food[]" value="Chicken"/><br/> 
+<textarea wrap="physical" cols="20" name="quote" rows="5">Enter your favorite quote!</textarea><br/> 
+Select a Level of Education:<br/> 
+<select name="education"> 
+<option value="Jr.High">Jr.High</option> 
+<option value="HighSchool">HighSchool</option> 
+<option value="College">College</option></select><br/> 
+Select your favorite time of day:<br/> 
+<select size="3" name="TofD"> 
+<option value="Morning">Morning</option> 
+<option value="Day">Day</option> 
+<option value="Night">Night</option></select> 
+<p><input id="submitButton" type="submit" /></p> 
+</form> 
+<div id="output"> </div>
+
 </body>
 </html>
 
