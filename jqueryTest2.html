@@ -1,0 +1,528 @@
+<html
+<head>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="jquery-ui.js"></script>
+<script type="text/javascript" src="jquery.tmpl.min.js"></script>
+<script type="text/javascript">
+$(function() {    
+    //Completed
+    $.condWait = function(max_attempts, delay, condFunc, condScope, func, scope /*, arguments */ ) {
+        var workerUnroller;
+        var worker = function(attempts, max_attempts, delay, flagFunc, flagScope, func, scope, args) {
+            if (attempts >= max_attempts) {
+                return false;
+            }
+            if (!flagFunc.apply(flagScope)) {
+                //increment attempts
+                var args2 = [attempts + 1].concat(Array.prototype.slice.call(arguments, 1));
+                setTimeout(workerUnroller, delay, args2);
+            }
+            else {
+                //apply just the arguments!
+                func.apply(scope, args);
+            }
+        };
+        workerUnroller = function(array) {
+            worker.apply(this, array);
+        };
+        worker(0, max_attempts, delay, condFunc, condScope, func, scope, Array.prototype.slice.call(arguments, 6));
+    };
+    $.udel = $.udel || {};
+    $.udel.template = function(args) {
+/*
+        args: {
+            //any (1) of the following:
+            url: null,
+            templateString: "",
+            template: null,
+            keepPreviousTemplate: boolean
+        }*/
+        this.keepPreviousTemplate = args.keepPreviousTemplate ? true : false;
+        this.ready = false;
+        if (args.template) {
+            this.template = args.template;
+            this.ready = true;
+        }
+        else if (args.templateString) {
+            this.template = $.template(args.templateString);
+            this.ready = true;
+        }
+        else if (args.url) {
+            var that = this;
+            $.ajax({
+                dataType: "text",
+                url: args.url,
+                type: "GET",
+                success: function(tmplString) {
+                    that.template = $.template(tmplString);
+                    that.ready = true;
+                },
+                error: function() {
+                    that.template = "Error loading template.";
+                }
+            });
+        }
+        this.applyTemplate = function(data, target, callback) {
+            var that = this;
+            //wait 4 seconds for the template if its not loaded yet
+            //TODO: add this to config!
+            $.condWait(20, 200, function() {
+                return that.ready;
+            }, that, function() {
+                that._applyTemplate(data, target);
+                if (callback) {
+                    callback();
+                }
+            }, that);
+        };
+        this._applyTemplate = function(data, target, callback) {
+            if (!target) {
+                target = data;
+                data = null;
+            }
+            if (this.template) {
+                if (!this.keepPreviousTemplate) {
+                    target.html("");
+                }
+                $.tmpl(this.template, data).appendTo(target);
+            }
+        };
+    };
+    $.udel.store = function(args) {
+/*
+        args: {
+            url: null,
+            method: "POST",//or "GET"
+            data: {},
+            preformatter: null,
+            postformatter: null
+        }*/
+        this.url = args.url;
+        this.data = args.data;
+        this.method = args.method ? args.method : "POST";
+        this.preformatter = args.preformatter;
+        this.postformatter = args.postformatter;
+
+        this.fetch = function(action, callback, data) {
+            var that = this;
+            var f = function(data) {
+                if (callback) {
+                    if (that.postformatter) {
+                        data = that.postformatter(data);
+                    }
+                    callback(data);
+                }
+            };
+            if (this.preformatter) {
+                data = this.preformatter(data);
+            }
+            if (this.url) {
+                $.ajax({
+                    'data': data,
+                    url: that.url + "/" + action + ".action",
+                    type: that.method,
+                    success: function(responseData) {
+                        f(data);
+                    }
+                    //TODO: error
+                });
+            }
+            else {
+                f(data);
+            }
+        };
+    };
+    $.udel.state = function(args) {
+/*
+        args: {
+            templateName: template name,
+            //Inside actions, this === a stateWidget instance
+            actions: [string or function to do something and return a string]
+            init: function
+        }*/
+        this.init = args.init;
+        this.templateName = args.templateName;
+        this.actions = {};
+		var that = this;
+		if (args.actions) {
+		    //convert all actions to functions
+		    $.each(args.actions, function(i) {
+		        var func = args.actions[i];
+		        if (!$.isFunction(func)) {
+					var s = func;
+		            func = function() {
+		                return s;
+		            };
+		        }
+		        that.actions[i] = func;
+		    });
+		}
+    };
+    //Completed.  When extended, name must be provided
+    $.widget("udel.factory", {
+        options: {
+            name: "factoryDefault"
+        },
+        // If create is overridden, call _registerInstance() unless you don't want it added!
+        _create: function() {
+            this._registerInstance();
+        },
+        _registerInstance: function() {
+            var pkg = this._getWidgetPackage();
+            if (!pkg.instanceMap) {
+                pkg.instanceMap = {};
+            }
+            pkg.instanceMap[this.options.name] = this.element;
+        },
+        destroy: function() {
+            var map = this._getInstanceMap();
+            if (map && map[this.options.name]) {
+                map.remove(this.options.name);
+            }
+            $.Widget.prototype.destroy.apply(this, arguments);
+        },
+        _getWidgetPackage: function() {
+            return $[this.namespace][this.widgetName];
+        },
+        _getInstanceMap: function() {
+            return this._getWidgetPackage().instanceMap;
+        },
+        _getInstance: function(name) {
+            return this._getInstanceMap()[name];
+        }
+    });
+    //in progress...
+    //TODO: replace flags with events???
+    $.widget("udel.stateWidget", $.udel.factory, {
+        options: {
+            name: "genericStateWidget",
+            stores: {},
+            templateBaseUrl: null,
+            templates: {},
+            states: {},
+            initialData: null
+        },
+        getData: function(dataIn) {
+            var data = {};
+            $.extend(true, data, this.data, dataIn);
+            return data;
+        },
+        saveData: function(data) {
+            this.data = data;
+        },
+        loadDataFromStore: function(args, callback, storeName) {
+            this._fetchFromStore(args, "get", callback, storeName);
+        },
+        saveDataToStore: function(args, callback, storeName) {
+            this._fetchFromStore(args, "save", callback, storeName);
+        },
+        doAction: function(action, dataIn) {
+			console.log("currentState:");
+			console.log(this.currentState);
+			var nextState = this.currentState.actions[action](dataIn);
+			console.log("nextState:");
+			console.log(nextState);
+            this._transitionTo(nextState);
+        },
+        _create: function() {
+			console.log("options:");
+			console.log(this.options);
+            this._initStores();
+            this._initTemplates();
+            this._initStates();
+            this.data = this.options.initialData;
+            this.dataLoaded = true;
+            this._transitionTo(this.initialStateName);
+            this._registerInstance();
+        },
+        _initStores: function() {
+            var stores = {};
+            var defaultStore = null;
+			var that = this;
+			if (this.options.stores) {
+		        $.each(this.options.stores, function(i) {
+		            stores[i] = that._getStore(that.options.stores[i]);
+		            if (!defaultStore || that.options.stores[i].defaultStore) {
+		                defaultStore = stores[i];
+		            }
+		        });
+			}
+            this.stores = stores;
+            this.defaultStoreName = defaultStore;
+        },
+        _initTemplates: function() {
+            var templates = {};
+			var that = this;
+			if (this.options.templates) {
+		        $.each(this.options.templates, function(i) {
+		            templates[i] = that._getTemplate(that.options.templates[i]);
+		        });
+			}
+            this.templates = templates;
+        },
+        _initStates: function() {
+            var states = {};
+            var initialStateName = null;
+			var that = this;
+			if (this.options.states) {
+		        $.each(this.options.states, function(i) {
+		            if (!initialStateName || that.options.states[i].initialState) {
+		                initialStateName = i;
+		            }
+		            states[i] = that._getState(that.options.states[i]);
+		        });
+			}
+            this.states = states;
+            this.initialStateName = initialStateName;
+        },
+        //convention: if args is a string, that string is the url
+        _getStore: function(argsIn) {
+            var args = argsIn;
+            if (argsIn instanceof String) {
+                args = {
+                    url: argsIn
+                };
+            }
+            return new $.udel.store(args);
+        },
+        //convention: if args is a string, that string is the url
+        //Also, if a templateBaseUrl is provided and the url does not have http at the front,
+        // the url is appended to the templateBaseUrl
+        _getTemplate: function(argsIn) {
+            var args = argsIn;
+            if (argsIn instanceof String) {
+                args = {
+                    url: argsIn
+                };
+            }
+            if (this.templateBaseUrl && args.url && !args.url.startsWith("http")) {
+                args.url = this.templateBaseUrl + args.url;
+            }
+            return new $.udel.template(args);
+        },
+        //convention: if args is a string, that string is the template name
+        _getState: function(argsIn) {
+            var args = argsIn;
+            if (argsIn instanceof String) {
+                args = {
+                    template: argsIn
+                };
+            }
+            return new $.udel.state(args);
+        },
+        _transitionTo: function(newStateName) {
+			if (!newStateName || !this.states[newStateName]) {
+				return;
+			}
+            var state = this.states[newStateName];
+            this.currentState = state;
+            if (state) {
+                var that = this;
+                var callback = function() {
+                    if (!state.store) {
+                        that.currentStore = that.defaultStore;
+                    }
+                    else {
+                        that.currentStore = that.stores[state.store];
+                    }
+                    if (state.init) {
+                        state.init.apply(that);
+                    }
+                };
+                if (state.templateName) {
+                    this.templates[state.templateName].applyTemplate(this.data, this.element, callback);
+                }
+                else {
+                    callback();
+                }
+            }
+        },
+        _fetchFromStore: function(args, action, callback, storeName) {
+            var that = this;
+            //wait up to 10 seconds for a data load.  essentially, a 10 second timeout
+            //TODO: make this configurable
+            $.condWait(50, 200, function() {
+                return that.dataLoaded;
+            }, that, function() {
+                that._fetchFromStoreWorker(args, action, callback, storeName);
+            }, that);
+        },
+        _fetchFromStoreWorker: function(args, action, callback, storeName) {
+            this.dataLoaded = false;
+            if (!storeName) {
+                storeName = this.defaultStoreName;
+            }
+            var store = (!storeName) ? null : this.stores[storeName];
+            if (!store) {
+                this.data = args;
+                this.dataLoaded = true;
+            }
+            else {
+                var that = this;
+                store.fetch(action, function(data) {
+                    that.data = data;
+                    that.dataLoaded = true;
+                }, args);
+            }
+        }
+    });
+/*
+    //Example/test case:
+    $.widget("udel.coa", $.udel.stateWidget, {
+        options: {
+            name: "coa",
+            stores: {
+                //defaultStore: true, //true by convention (first store listed)
+                "coa": "https://mis014.mis.udel.edu/coa"
+            },
+            templateBaseUrl: "https://mis014.mis.udel.edu/coa/templates/",
+            templates: {
+                "loading": {
+                    url: "loading.html",
+                    keepPreviousTemplate: true
+                },
+                "saving": {
+                    url: "saving.html",
+                    keepPreviousTemplate: true
+                },
+                "chartfieldView": {
+                    url: "view.html"
+                },
+                "speedtype": {
+                    url: "editStep1.html"
+                },
+                "chartfieldEdit": {
+                    url: "editStep2.html"
+                }
+            },
+            states: {
+                "init": {
+                    //initialState: true, //true by convention (first state listed)
+                    templateName: "loading",
+                    init: function() {
+                        var data = this.getData();
+                        var nextStep = data.action;
+                        if (!nextStep) {
+                            nextStep = "new";
+                        }
+                        if (data.id) {
+                            //FIXME: race condition here!
+                            // action should only happen after data is loaded, callback needed!
+                            var that = this;
+                            this.loadDataFromStore({
+                                id: data.id
+                            }, function() {
+                                that.doAction(nextStep);
+                            });
+                        }
+                        else {
+                            this.saveData(null);
+                            this.doAction(nextStep);
+                        }
+                    },
+                    actions: {
+                        "new": "chooseSpeedtype",
+                        "edit": "setChartfields",
+                        "view": "viewChartfields"
+                    }
+                },
+                "viewChartfields": "chartfieldView",
+                "chooseSpeedtype": {
+                    templateName: "speedtype",
+                    actions: {
+                        "next": function(dataIn) {
+                            var data = this.getData(dataIn);
+                            this.saveData({
+                                id: data.id,
+                                speedtype: data.speedtype
+                            });
+                            return "setChartfields";
+                        }
+                    }
+                },
+                "setChartfields": {
+                    templateName: "chartfieldEdit",
+                    actions: {
+                        "save": function(dataIn) {
+                            this.saveData(this.getData(dataIn));
+                            return "saving";
+                        },
+                        "reset": function() {
+                            var data = this.getData();
+                            this.saveData(data.id ? {
+                                id: data.id
+                            } : null);
+                            return "init";
+                        },
+                        "back": "chooseSpeedtype"
+                    }
+                },
+                "saving": {
+                    templateName: "saving",
+                    init: function() {
+                        //TODO: convert to register listener (and on event doAction/unregister)/loadDataFromStore
+                        this.saveOrUpdate(this.getData(), function() {
+                            this.doAction("next");
+                        });
+                    },
+                    actions: {
+                        "next": "setChartfields"
+                    }
+                }
+            }
+        }
+    });
+*/
+    $.widget("udel.swTester", $.udel.stateWidget, {
+        options: {
+            name: "swTester",
+			templates: {
+				"a" : {url:"a.html"},
+				"b" : {url:"b.html"}
+			},
+			states: {
+				"A": {
+					templateName: "a",
+					init: function() {
+						var that = this;
+						setTimeout(function() {
+									that.doAction("next");				
+								},
+								500);
+					},
+					actions: {
+						"next" : "B"
+					}
+				},
+				"B": {
+					templateName: "b",
+					init: function() {
+						var that = this;
+						setTimeout(function() {
+									that.doAction("next");
+								},
+								500);
+					},
+					actions: {
+						"next" : "A"
+					}
+				}
+			}
+		}
+	});
+	$("#content").swTester({name:"test1"});
+});//(jQuery);
+</script>
+</head>
+<body>
+	<div class="error"></div>
+	<div id="content"> </div>
+	<div id="mine"> </div>
+	<div id="testA"> </div>
+	<div id="testB"> </div>
+	<div id="test1" class="two"> </div>
+	<div id="test2" class="two"> </div>
+	<div id="condwait"> </div>
+	<div id="output"> </div>
+</body>
+</html>
