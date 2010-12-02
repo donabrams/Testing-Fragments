@@ -1,0 +1,13 @@
+{
+	"note" : "//NOTE: isEscaped in AjaxResultObject needs to be false",
+	"result" : "SUCCESS",
+	"messages" : [],
+	"errors" : [],
+	"object" : {
+		"coa":	{
+			"id": 1,
+			"speedtype": "ITMS110000",
+			"adminOverridden" : true
+		}
+	}
+}

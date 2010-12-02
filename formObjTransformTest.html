@@ -1,0 +1,128 @@
+<html>
+<head>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="jquery.formObjTransform2.js"></script>
+</head>
+<body>
+<form action="" method="post"> <br/> 
+    First Name:<input type="text" name="Fname" maxlength="12" size="12"/> <br/> 
+    Last Name:<input type="text" name="Lname" maxlength="36" size="12"/> <br/> 
+    Gender:<br/> 
+    Male:<input type="radio" name="gender" value="Male"/><br/> 
+    Female:<input type="radio" name="gender" value="Female"/><br/> 
+    Favorite Food:<br/> 
+    Steak:<input type="checkbox" name="food" value="Steak"/><br/> 
+    Pizza:<input type="checkbox" name="food" value="Pizza"/><br/> 
+    Chicken:<input type="checkbox" name="food" value="Chicken"/><br/> 
+    <textarea wrap="physical" cols="20" name="quote" rows="5">Enter your favorite quote!</textarea><br/> 
+    Select a Level of Education:<br/> 
+    <select name="education"> 
+        <option value="Jr.High">Jr.High</option> 
+        <option value="HighSchool">HighSchool</option> 
+        <option value="College">College</option></select><br/> 
+    Select your favorite time of day:<br/> 
+    <select size="3" name="TofD"> 
+        <option value="Morning">Morning</option> 
+        <option value="Day">Day</option> 
+        <option value="Night">Night</option></select> 
+    <select multiple="multiple" size="3" name="TofD2"> 
+        <option value="Morning">Morning</option> 
+        <option value="Day">Day</option> 
+        <option value="Night">Night</option></select>
+    <select size="3" name="test.a.TofD"> 
+        <option value="Morning">Morning</option> 
+        <option value="Day">Day</option> 
+        <option value="Night">Night</option></select> 
+    <select multiple="multiple" size="3" name="test.a.TofD2"> 
+        <option value="Morning">Morning</option> 
+        <option value="Day">Day</option> 
+        <option value="Night">Night</option></select>
+    <select size="3" name="test2[0].TofD"> 
+        <option value="Morning">Morning</option> 
+        <option value="Day">Day</option> 
+        <option value="Night">Night</option></select> 
+    <select multiple="multiple" size="3" name="test2[0].TofD2"> 
+        <option value="Morning">Morning</option> 
+        <option value="Day">Day</option> 
+        <option value="Night">Night</option></select>
+    <select size="3" name="test2[2].TofDA"> 
+        <option value="Morning">Morning</option> 
+        <option value="Day">Day</option> 
+        <option value="Night">Night</option></select> 
+    <select multiple="multiple" size="3" name="test2[2].TofD2A"> 
+        <option value="Morning">Morning</option> 
+        <option value="Day">Day</option> 
+        <option value="Night">Night</option></select><br/>
+    Favorite Food:<br/> 
+    Steak:<input type="checkbox" name="test3[0][1].food" value="Steak"/><br/> 
+    Pizza:<input type="checkbox" name="test3[0][1].food" value="Pizza"/><br/> 
+    Chicken:<input type="checkbox" name="test3[0][1].food" value="Chicken"/><br/> 
+    Favorite Food:<br/> 
+    Steak:<input type="checkbox" name="test3[1][2]" value="Steak"/><br/> 
+    Pizza:<input type="checkbox" name="test3[1][2]" value="Pizza"/><br/> 
+    Chicken:<input type="checkbox" name="test3[1][2]" value="Chicken"/><br/> 
+    <p><button onClick='$(this).parents("form").objToForm({quote:"We work, yay!"});return false;'>Populate quote</button>
+		<button onClick='$(this).parents("form").objToForm({quote:"We work, yay!"}, true);return false;'>Clear and Populate quote</button>
+		<button onClick='$("#otherForm").objToForm($(this).parents("form").formToObj(), true);return false;'>Copy values to new form</button></p>
+</form>
+<form id="otherForm" action="" method="post"> <br/> 
+    First Name:<input type="text" name="Fname" maxlength="12" size="12"/> <br/> 
+    Last Name:<input type="text" name="Lname" maxlength="36" size="12"/> <br/> 
+    Gender:<br/> 
+    Male:<input type="radio" name="gender" value="Male"/><br/> 
+    Female:<input type="radio" name="gender" value="Female"/><br/> 
+    Favorite Food:<br/> 
+    Steak:<input type="checkbox" name="food" value="Steak"/><br/> 
+    Pizza:<input type="checkbox" name="food" value="Pizza"/><br/> 
+    Chicken:<input type="checkbox" name="food" value="Chicken"/><br/> 
+    <textarea wrap="physical" cols="20" name="quote" rows="5">Enter your favorite quote!</textarea><br/> 
+    Select a Level of Education:<br/> 
+    <select name="education"> 
+        <option value="Jr.High">Jr.High</option> 
+        <option value="HighSchool">HighSchool</option> 
+        <option value="College">College</option></select><br/> 
+    Select your favorite time of day:<br/> 
+    <select size="3" name="TofD"> 
+        <option value="Morning">Morning</option> 
+        <option value="Day">Day</option> 
+        <option value="Night">Night</option></select> 
+    <select multiple="multiple" size="3" name="TofD2"> 
+        <option value="Morning">Morning</option> 
+        <option value="Day">Day</option> 
+        <option value="Night">Night</option></select>
+    <select size="3" name="test.a.TofD"> 
+        <option value="Morning">Morning</option> 
+        <option value="Day">Day</option> 
+        <option value="Night">Night</option></select> 
+    <select multiple="multiple" size="3" name="test.a.TofD2"> 
+        <option value="Morning">Morning</option> 
+        <option value="Day">Day</option> 
+        <option value="Night">Night</option></select>
+    <select size="3" name="test2[0].TofD"> 
+        <option value="Morning">Morning</option> 
+        <option value="Day">Day</option> 
+        <option value="Night">Night</option></select> 
+    <select multiple="multiple" size="3" name="test2[0].TofD2"> 
+        <option value="Morning">Morning</option> 
+        <option value="Day">Day</option> 
+        <option value="Night">Night</option></select>
+    <select size="3" name="test2[2].TofDA"> 
+        <option value="Morning">Morning</option> 
+        <option value="Day">Day</option> 
+        <option value="Night">Night</option></select> 
+    <select multiple="multiple" size="3" name="test2[2].TofD2A"> 
+        <option value="Morning">Morning</option> 
+        <option value="Day">Day</option> 
+        <option value="Night">Night</option></select><br/>
+    Favorite Food:<br/> 
+    Steak:<input type="checkbox" name="test3[0][1].food" value="Steak"/><br/> 
+    Pizza:<input type="checkbox" name="test3[0][1].food" value="Pizza"/><br/> 
+    Chicken:<input type="checkbox" name="test3[0][1].food" value="Chicken"/><br/> 
+    Favorite Food:<br/> 
+    Steak:<input type="checkbox" name="test3[1][2]" value="Steak"/><br/> 
+    Pizza:<input type="checkbox" name="test3[1][2]" value="Pizza"/><br/> 
+    Chicken:<input type="checkbox" name="test3[1][2]" value="Chicken"/><br/> 
+</form> 
+<div id="json"> </div>
+</body>
+</html>

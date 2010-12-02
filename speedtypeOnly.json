@@ -1,0 +1,12 @@
+{
+	"note" : "//NOTE: isEscaped in AjaxResultObject needs to be false",
+	"result" : "SUCCESS",
+	"object" : {
+		"coa":	{
+			"speedtype": "ITMS110000",
+			"fund": "some IT fund",
+			"program": "some program",
+			"speedtypeDescr": "IT MIS is awesome"
+		}
+	}
+}

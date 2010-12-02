@@ -1,0 +1,179 @@
+<style type="text/css">
+.coa a {
+	outline:none;
+}
+.coa * {
+	margin: 0;
+	padding: 0;
+}
+.coa {
+	width: 400;
+	margin-top: .5em;
+	margin-bottom: 1em;
+	text-align: center;
+	font-family: Arial, Helvetica, sans-serif; 
+	position: relative;
+}
+.coa .coaHeader {
+	position: absolute;
+	top:-.5em;
+	left:5;
+	width: 300;
+	background-color: #333366;
+	text-align: center;
+	padding: .3em;
+	margin-bottom: -.5em;
+	white-space:nowrap;
+    -webkit-box-shadow: 5px 5px 5px #333366;
+    -moz-box-shadow: 5px 5px 5px #333366;
+    box-shadow: 5px 5px 5px #333366;
+	-webkit-border-radius: 15px;
+	-moz-border-radius: 15px;
+	border-radius: 15px;
+}
+.coa .coaHeader h3 {
+	color: white;
+}
+.coa .chartfields {
+	border: 1px;
+	border-color: black;
+	border-style: solid;
+	padding-top: 2em;
+	padding-bottom: 1.5em;
+	margin-left: 15px;
+	background-color: #ffffcc;
+	text-align: left;
+	white-space:nowrap;
+    -webkit-box-shadow: 5px 5px 5px #333366;
+    -moz-box-shadow: 5px 5px 5px #333366;
+    box-shadow: 5px 5px 5px #333366;
+	-webkit-border-radius: 15px;
+	-moz-border-radius: 15px;
+	border-radius: 15px;
+}
+.coa .chartfields * {
+	margin-left: 1em;	
+}
+.coa .chartfields ul {
+	text-align: left;
+	padding: .2em;
+	margin-left: 1em;
+	list-style-type: disc;
+}
+.coa .chartfields ul, .coa .chartfields ul * {
+	white-space:normal;	
+}
+.coa ul.errors {
+	color: red;
+}
+.coa ul.messages {
+	color: black;
+	margin-left: 0em;
+	list-style-type: none;
+}
+.coa label {
+	display: block;
+	font-weight: bold;
+	padding: .2em;
+}
+.coa label.diffLines {
+	text-align: left;
+	white-space:nowrap;
+	width: 150px;
+	clear: left;
+}
+.coa label.diffLinesRight {
+	text-align: right;
+	white-space:nowrap;
+	width: 150px;
+	clear: left;
+}
+.coa label.sameLine {
+	float: left;
+	text-align: left;
+	white-space:normal;
+	width: 150px;
+}
+.coa label.sameLineRight {
+	float: left;
+	text-align: right;
+	width: 120px;
+	white-space:normal;
+}
+.coa label:after { 
+	content: ": ";
+}
+.coa label.required:after { 
+	content: ": *";
+}
+.coa .chartfields input, .coa .chartfields textarea, .coa .chartfields span, .coa .chartfields p {
+	margin-bottom: 5px;
+	padding: .2em;
+	margin-left: 1em;
+	white-space:normal;
+}
+.coa .chartfields p {
+	margin-left: 2em;
+}
+.coa .chartfields input, .coa .chartfields textarea {
+    border: solid 1px #E5E5E5;
+    outline: 0;
+	-webkit-box-shadow: rgba(0,0,0,0.1) 0px 0px 8px;
+	-moz-box-shadow: rgba(0,0,0,0.1) 0px 0px 8px;
+	box-shadow: rgba(0,0,0,0.1) 0px 0px 8px;
+    background: -webkit-gradient(linear, left top, left 25, from(#EEEEEE), to(#FFFFFF));  
+    background: -moz-linear-gradient(top, #EEEEEE, #FFFFFF 25px);
+}
+.coa .chartfields input:hover, .coa .chartfields textarea:hover,
+	.coa .chartfields input:focus, .coa .chartfields textarea:focus {
+    -webkit-box-shadow: rgba(0, 0, 0, 0.2) 0px 0px 8px;
+    -moz-box-shadow: rgba(0, 0, 0, 0.2) 0px 0px 8px;
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 0px 8px;
+}
+.coa .chartfields textarea {
+	margin-left: 2em;
+	width: 305px;
+	height: 4em;
+}
+.coa .chartfields label.sameLine + input, .coa .chartfields label.sameLine + textarea {
+	margin-left: .5em;
+}
+.coa .chartfields .boxes {
+	width: 3em;
+}
+.coa label.error {
+	color: red;
+}
+.coa label.error + * {
+	background-color: red;
+    border: solid 1px #FF0000;
+}
+.coa .coaButton {
+	background-color: white;
+	font-weight: bold;
+	margin-top: 5px;
+	padding-left: .35em;
+	padding-right: .35em;
+    -webkit-border-radius: 5px;  
+    -moz-border-radius: 5px;  
+    border-radius: 5px; 
+}
+.coa br {
+	clear: left;
+}
+.coa .coaFooter {
+	width: 300px;
+	text-align: center;
+	background-color: #333366;
+	padding-top: .25em;
+	padding-bottom: .4em;
+	margin-top: -.5em;
+	margin-left: 55px;
+    -webkit-box-shadow: 5px 5px 5px #333366;
+    -moz-box-shadow: 5px 5px 5px #333366;
+    box-shadow: 5px 5px 5px #333366;
+	-webkit-border-radius: 15px;
+	-moz-border-radius: 15px;
+	border-radius: 15px;
+}
+</style>

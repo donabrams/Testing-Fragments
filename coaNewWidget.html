@@ -1,0 +1,30 @@
+<div class="coa">
+	<form>
+		<div class="chartFields">
+			{{if messages && messages.length > 0}}
+			<ul class="messages">
+				{{each messages}}
+				<li>${$value}</li>
+				{{/each}}
+			</ul>
+			{{/if}}
+			{{if errors && errors.length > 0}}
+			<ul class="errors">
+				{{each errors}}
+				<li>${$value}</li>
+				{{/each}}
+			</ul>
+			{{/if}}
+			<label for="speedtype" class="sameLine">SpeedType</label><input type="text" name="speedtype" value="${coa.speedtype}"/>
+		</div>
+		<div class="coaHeader">
+			<h3>Chart of Accounts ${coa.id}</h3>
+		</div>
+		<div class="coaFooter">
+			<button class="coaButton" onClick='$(this).parents(".coa").parent().coa("doAction","next");return false;'>Next</button>
+			{{if coa.speedtype}}
+			<button class="coaButton" onClick='$(this).parents(".coa").parent().coa("doAction","cancel");return false;'>Cancel Change Speedtype</button>
+			{{/if}}
+		</div>
+	</form>
+</div>

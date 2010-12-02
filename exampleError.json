@@ -1,0 +1,7 @@
+{
+	"note" : "//NOTE: isEscaped in AjaxResultObject needs to be false",
+	"result" : "FAILURE",
+	"messages" : ["some random message", "A really long message. A really long message. A really long message. A really long message. A really long message. A really long message. A really long message. A really long message. A really long message. A really long message. A really long message. A really long message."],
+	"errors" : ["some random error", "A really long Error. A really long Error. A really long Error. A really long message. A really long message. A really long message. A really long message. A really long Error. A really long Error. A really long message. A really long message. A really long message."],
+	"object" : null
+}
